@@ -305,7 +305,7 @@ internal fun invalidWeights(
         if (finalWeight % 5 != 0.0 || initialWeight % 5 != 0.0) return true
     }
     // 2. check bounds
-    return (initialWeight > finalWeight || initialWeight <= 0 || finalWeight <= 0)
+    return initialWeight > finalWeight || initialWeight <= 0 || finalWeight <= 0
 }
 
 /**
@@ -321,7 +321,7 @@ internal fun calculatePlateList(
     val plateList: MutableList<MutableList<Int>> = ArrayList()
     weightList.forEach{weight ->
         val modifiedWeight = (weight - initialWeight) / 2
-        plateList.add(plateSchemeOf(modifiedWeight, isMetric))
+        plateList.add(greedyPlateSchemeOf(modifiedWeight, isMetric))
     }
     return plateList
 }
@@ -336,7 +336,32 @@ internal fun calculatePlateList(
  * coin system.
  */
 @VisibleForTesting
-internal fun plateSchemeOf(weight: Double, isMetric: Boolean): MutableList<Int>{
+internal fun greedyPlateSchemeOf(weight: Double, isMetric: Boolean): MutableList<Int>{
+    var x = weight
+    val coinSystem = if (isMetric) KGS_SYSTEM else LBS_SYSTEM
+    val plateScheme = MutableList(coinSystem.size){0}
+    var i = coinSystem.size - 1
+    while (x != 0.0){
+        if (x - coinSystem[i] < 0)
+            i -= 1
+        else{
+            plateScheme[i] += 1
+            x -= coinSystem[i]
+        }
+    }
+    return plateScheme
+}
+
+/**
+ * Calculates the stack of plates needed to arrive at a given weight. This is the coin
+ * change problem, using the dynamic programming solution instead of the greedy method.
+ * @param   weight: the value being reached
+ * @param   isMetric: determines if the list uses LBS or KGS coin system
+ * @return  a list containing the minimum amount of weights needed to reach the weight based on the
+ * coin system.
+ */
+@VisibleForTesting
+internal fun dynamicPlateSchemeOf(weight: Double, isMetric: Boolean): MutableList<Int>{
     var x = weight
     val coinSystem = if (isMetric) KGS_SYSTEM else LBS_SYSTEM
     val plateScheme = MutableList(coinSystem.size){0}

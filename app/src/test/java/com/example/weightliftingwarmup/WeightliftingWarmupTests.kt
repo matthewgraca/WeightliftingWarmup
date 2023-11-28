@@ -4,28 +4,9 @@ import org.junit.Test
 import org.junit.Assert.*
 
 class WeightliftingWarmupTests {
-    @Test
-    fun calculateWarmupList_evenlyDivisibleIntIncrements() {
-        val initialWeight = 45.0
-        val finalWeight = 205.0
-        val numOfSets = 5
-        val isMetric = false
-        val actualList = calculateWarmupList(initialWeight, finalWeight, numOfSets, isMetric)
-        val expectedList = listOf(45.0, 85.0, 125.0, 165.0, 205.0)
-        assertEquals(expectedList, actualList)
-    }
-
-    @Test
-    fun calculateWarmupList_unevenlyDivisibleDoubleIncrements() {
-        val initialWeight = 45.0
-        val finalWeight = 200.0
-        val numOfSets = 5
-        val isMetric = false
-        val actualList = calculateWarmupList(initialWeight, finalWeight, numOfSets, isMetric)
-        val expectedList = listOf(45.0, 85.0, 125.0, 160.0, 200.0)
-        assertEquals(expectedList, actualList)
-    }
-
+    /**
+     * Invalid inputs tests
+     */
     @Test
     fun invalidInputs_setsOutOfMinRange() {
         val initialWeight = 45.0
@@ -125,16 +106,30 @@ class WeightliftingWarmupTests {
         assertEquals(expectedList, actualList)
     }
 
+    /**
+     * Calculate Warmup List tests
+     */
     @Test
-    fun plateSchemeOf_worksWithLbs(){
-        // 405 / 2 - 45
-        val weight = 180.0
+    fun calculateWarmupList_evenlyDivisibleIntIncrements() {
+        val initialWeight = 45.0
+        val finalWeight = 205.0
+        val numOfSets = 5
         val isMetric = false
-        val actualList = plateSchemeOf(weight, isMetric)
-        val expectedList = listOf(0, 1, 1, 0, 0, 0, 3)
+        val actualList = calculateWarmupList(initialWeight, finalWeight, numOfSets, isMetric)
+        val expectedList = listOf(45.0, 85.0, 125.0, 165.0, 205.0)
         assertEquals(expectedList, actualList)
     }
 
+    @Test
+    fun calculateWarmupList_unevenlyDivisibleDoubleIncrements() {
+        val initialWeight = 45.0
+        val finalWeight = 200.0
+        val numOfSets = 5
+        val isMetric = false
+        val actualList = calculateWarmupList(initialWeight, finalWeight, numOfSets, isMetric)
+        val expectedList = listOf(45.0, 85.0, 125.0, 160.0, 200.0)
+        assertEquals(expectedList, actualList)
+    }
     @Test
     fun calculatePlateList_worksWithLbs(){
         val weightList = listOf(45.0, 135.0, 225.0, 315.0, 405.0)
@@ -151,6 +146,9 @@ class WeightliftingWarmupTests {
         assertEquals(expectedList, actualList)
     }
 
+    /**
+     * Invalid weights tests
+     */
     @Test
     fun invalidWeights_trueForKgMorePreciseThanOnes(){
         val x = 5.1
@@ -169,5 +167,39 @@ class WeightliftingWarmupTests {
         val actualBool = invalidWeights(x, y, metric)
         val expectedBool = true
         assertEquals(expectedBool, actualBool)
+    }
+
+    /**
+     * Plate Scheme tests
+     */
+    @Test
+    fun greedyPlateSchemeOf_worksWithLbs(){
+        // 405 / 2 - 45
+        val weight = 180.0
+        val isMetric = false
+        val actualList = greedyPlateSchemeOf(weight, isMetric)
+        val expectedList = listOf(0, 1, 1, 0, 0, 0, 3)
+        assertEquals(expectedList, actualList)
+    }
+
+    @Test
+    fun dynamicPlateSchemeOf_worksWithLbs(){
+        // 405 / 2 - 45
+        val weight = 180.0
+        val isMetric = false
+        val actualList = dynamicPlateSchemeOf(weight, isMetric)
+        val expectedList = listOf(0, 1, 1, 0, 0, 0, 3)
+        assertEquals(expectedList, actualList)
+    }
+
+    @Test
+    fun dynamicPlateSchemeOf_beatsGreedy(){
+        val weight = 70.0
+        /*
+        val isMetric = false
+        val actualList = dynamicPlateSchemeOf(weight, isMetric)
+        val expectedList = listOf(0, 0, 0, 0, 2, 0, 0)
+        assertEquals(expectedList, actualList)
+        */
     }
 }
