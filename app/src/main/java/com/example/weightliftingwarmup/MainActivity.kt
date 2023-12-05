@@ -39,6 +39,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.weightliftingwarmup.ui.theme.WeightliftingWarmupTheme
+import java.lang.IllegalArgumentException
 import kotlin.math.round
 
 val LBS_SYSTEM = listOf(2.5, 5.0, 10.0, 25.0, 35.0, 45.0, 55.0)
@@ -270,6 +271,7 @@ internal fun invalidInputs(
 ): Boolean{
     return invalidNumOfSets(numOfSets) || invalidWeights(initialWeight, finalWeight, isMetric)
 }
+
 /**
  * Validates numOfSets input. Must be larger than a min value, and smaller than a max value.
  * @param   x: the value of numOfSets
@@ -327,9 +329,8 @@ internal fun calculatePlateList(
 }
 
 /**
- * Calculates the stack of plates needed to arrive at a given weight. This is the coin
- * change problem. Using the assumption that the coin (weight) system is canonical, we use
- * the greedy method.
+ * Calculates the stack of plates needed to arrive at a given weight. This is the greedy solution
+ * to the coin change problem. Assumes a valid solution is possible.
  * @param   weight: the value being reached
  * @param   isMetric: determines if the list uses LBS or KGS coin system
  * @return  a list containing the amount of weights needed to reach the weight based on the
@@ -342,8 +343,10 @@ internal fun greedyPlateSchemeOf(weight: Double, isMetric: Boolean): MutableList
     val plateScheme = MutableList(coinSystem.size){0}
     var i = coinSystem.size - 1
     while (x != 0.0){
-        if (x - coinSystem[i] < 0)
+        if (x - coinSystem[i] < 0){
             i -= 1
+            if (i < 0) throw IllegalArgumentException("No solution found for weight $weight")
+        }
         else{
             plateScheme[i] += 1
             x -= coinSystem[i]

@@ -182,6 +182,13 @@ class WeightliftingWarmupTests {
         assertEquals(expectedList, actualList)
     }
 
+    @Test(expected = IllegalArgumentException::class)
+    fun greedyPlateSchemeOf_lbsFailsWithBadPrecisionInput(){
+        val weight = 183.0
+        val isMetric = false
+        greedyPlateSchemeOf(weight, isMetric)
+    }
+
     @Test
     fun dynamicPlateSchemeOf_worksWithLbs(){
         // 405 / 2 - 45
