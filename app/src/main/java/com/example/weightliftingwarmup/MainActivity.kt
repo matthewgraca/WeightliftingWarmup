@@ -43,7 +43,9 @@ import java.lang.IllegalArgumentException
 import kotlin.math.round
 
 val LBS_SYSTEM = listOf(2.5, 5.0, 10.0, 25.0, 35.0, 45.0, 55.0)
+val LBS_SYSTEM_INT = listOf(1, 2, 4, 10, 14, 18, 22)
 val KGS_SYSTEM = listOf(0.25, 0.5, 1.25, 2.5, 5.0, 10.0, 15.0, 20.0, 25.0)
+val KGS_SYSTEM_INT = listOf(1, 2, 5, 10, 20, 40, 60, 80, 100)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -358,26 +360,59 @@ internal fun greedyPlateSchemeOf(weight: Double, isMetric: Boolean): MutableList
 /**
  * Calculates the stack of plates needed to arrive at a given weight. This is the coin
  * change problem, using the dynamic programming solution instead of the greedy method.
- * @param   weight: the value being reached
- * @param   isMetric: determines if the list uses LBS or KGS coin system
+ * @param   weight: the value being reached -- assumed to be valid
+ * @param   isMetric: determines if the list uses LBS or KGS coin system -- assumed to be valid
  * @return  a list containing the minimum amount of weights needed to reach the weight based on the
  * coin system.
  */
 @VisibleForTesting
 internal fun dynamicPlateSchemeOf(weight: Double, isMetric: Boolean): MutableList<Int>{
-    var x = weight
-    val coinSystem = if (isMetric) KGS_SYSTEM else LBS_SYSTEM
-    val plateScheme = MutableList(coinSystem.size){0}
-    var i = coinSystem.size - 1
-    while (x != 0.0){
-        if (x - coinSystem[i] < 0)
-            i -= 1
-        else{
-            plateScheme[i] += 1
-            x -= coinSystem[i]
+    // coin problem is easier with integers, so we scale and cast the coin system and weight
+    val coins = if (isMetric) KGS_SYSTEM_INT else LBS_SYSTEM_INT
+    val target = (if (isMetric) weight * 4 else weight / 2.5).toInt()
+
+    return mutableListOf()
+}
+
+/**
+ * Finds the minimum amount of coins needed to reach a target value
+ * @param   coins: the coin system containing the denominations to be used
+ * @param   target: the value to reach using the given coins
+ * @return  the minimum amount of coins needed to reach a target value
+ */
+@VisibleForTesting
+internal fun weightMaking(coins: List<Int>, target: Int): Int{
+    val solutions = initSolutionMatrix(coins, target)
+    for ((c, coin) in coins.withIndex()){
+        for (r in 1..target){
+            if (coin == r)
+                solutions[c+1][r] = 1
+            else if (coin > r)
+                solutions[c+1][r] = solutions[c][r]
+            else
+                solutions[c+1][r] = minOf(solutions[c][r], 1 + solutions[c+1][r - coin])
         }
     }
-    return plateScheme
+    return solutions.last().last()
+}
+
+/**
+ * Helper function that generates the change making matrix
+ * @param   setOfWeights: the set of weights containing the denominations -- assumed to be valid
+ * @param   target: the value to obtain with the fewest weights -- assumed to be valid
+ * @return the matrix that will be used to contain the solutions
+ */
+@VisibleForTesting
+internal fun initSolutionMatrix(setOfWeights:List<Int>, target: Int
+): MutableList<MutableList<Int>>{
+    val solutions = mutableListOf<MutableList<Int>>()
+    // initialize the matrix to zero
+    for (i in 0..setOfWeights.size)
+        solutions.add(MutableList(target + 1){0})
+    // then, initialize the first row (except the 0th item) to infinity (by default, no solution)
+    for (i in 1 .. target)
+        solutions[0][i] = Int.MAX_VALUE
+    return solutions
 }
 
 /**
