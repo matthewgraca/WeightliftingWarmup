@@ -1,5 +1,6 @@
 package com.example.weightliftingwarmup
 
+import com.example.weightliftingwarmup.model.Scheme
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -9,9 +10,10 @@ import org.junit.Assert.*
  *
  * See [testing documentation](http://d.android.com/tools/testing).
  */
-class ExampleUnitTest {
+class SchemeTest {
     @Test
-    fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+    fun scheme_inits(){
+        val scheme = Scheme()
+        assertTrue(true)
     }
 }
