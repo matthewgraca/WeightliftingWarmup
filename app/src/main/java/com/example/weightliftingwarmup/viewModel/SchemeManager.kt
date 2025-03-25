@@ -6,7 +6,7 @@ import com.example.weightliftingwarmup.model.Scheme
 import com.example.weightliftingwarmup.model.Setting
 import com.example.weightliftingwarmup.model.WeightSystem
 
-class SchemeManager {
+object SchemeManager {
     private val scheme = Scheme()
 
     fun getWeightScheme(): List<Double> = scheme.workingWeights.toList()
@@ -28,6 +28,10 @@ class SchemeManager {
             Setting.LAZY -> TODO()
         }
     }
+
+    /**
+     * Greedy weight scheme creation section
+     */
 
     fun createGreedyWeightScheme(
         startWeight: Double,
@@ -79,7 +83,39 @@ class SchemeManager {
         return l
     }
 
-    //TODO
-    //fun createLazyWeightScheme()
-    //fun createLazyPlateScheme()
+    /**
+     * Lazy weight scheme creation section
+     */
+    fun createLazyWeightScheme(): Nothing = TODO()
+    fun createLazyPlateScheme(): Nothing = TODO()
+
+    /**
+     * Input validation section
+     */
+    // TODO: If the inputs are invalid, what should we do? Throw errors? Return defaults?
+    // maybe under user input, it would notify the error; e.g. end weight must be larger than start weight
+    fun validateInputs(
+        startWeight: Double,
+        endWeight: Double,
+        numSets: Int,
+        setting: Setting,
+        sys: WeightSystem
+    ): Boolean{
+        if (!validateStartWeight(startWeight)) return false
+
+        if (!validateEndWeight(startWeight, endWeight)) return false
+
+        if (!validateNumSets(numSets)) return false
+
+        return true
+    }
+
+    // condition: must be a non-negative number
+    fun validateStartWeight(startWeight: Double) = startWeight >= 0
+
+    // condition: ending weight >= starting weight
+    fun validateEndWeight(startWeight: Double, endWeight: Double) = endWeight >= startWeight
+
+    // condition: more than 0 sets
+    fun validateNumSets(numSets: Int) = numSets > 0
 }
