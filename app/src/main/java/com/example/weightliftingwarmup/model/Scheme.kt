@@ -2,7 +2,7 @@ package com.example.weightliftingwarmup.model
 
 data class Scheme(
     var workingWeights: List<Double> = emptyList(),
-    var plateScheme: List<List<Double>> = emptyList()
+    var plateScheme: List<Map<Double, Int>> = emptyList()
 )
 
 enum class Setting{

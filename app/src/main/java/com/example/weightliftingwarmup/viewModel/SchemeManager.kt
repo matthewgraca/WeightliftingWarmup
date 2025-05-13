@@ -10,8 +10,11 @@ object SchemeManager {
     private val scheme = Scheme()
 
     fun getWeightScheme(): List<Double> = scheme.workingWeights.toList()
-    fun getPlateScheme(): List<List<Double>> = scheme.plateScheme.toList()
+    fun getPlateScheme(): List<Map<Double, Int>> = scheme.plateScheme.toList()
 
+    /**
+     * Create a valid scheme based on the user's parameters.
+     */
     fun createScheme(
         startWeight: Double,
         endWeight: Double,
@@ -50,21 +53,25 @@ object SchemeManager {
     fun createGreedyPlateScheme(
         weights: List<Double>,
         sys: WeightSystem
-    ): MutableList<List<Double>>{
-        val plateScheme: MutableList<List<Double>> = mutableListOf()
-        weights.forEach{ plateScheme.add(greedyCoinChange((it - weights[0]) / 2 , sys)) }
+    ): List<Map<Double, Int>>{
+        val plateScheme: MutableList<MutableMap<Double, Int>> = mutableListOf()
+        weights.forEach{
+            plateScheme.add(
+                greedyCoinChange((it - weights[0]) / 2, sys)
+            )
+        }
         return plateScheme
     }
 
     // assumes a solution exists
-    fun greedyCoinChange(weight: Double, sys: WeightSystem): List<Double>{
-        val l: MutableList<Double> = mutableListOf()
-        var remainingWeight = weight
+    fun greedyCoinChange(weight: Double, sys: WeightSystem): MutableMap<Double, Int>{
         val coins = when(sys){
             WeightSystem.POUNDS -> Pounds().lbs
             WeightSystem.KILOS -> Kilos().kgs
         }
+        val coinCounts = coins.associateWith{ 0 }.toMutableMap()
 
+        var remainingWeight = weight
         while (remainingWeight > 0){
             // find largest coin that fits the remaining weight
             var i = coins.size - 1
@@ -73,14 +80,15 @@ object SchemeManager {
             }
 
             // add that coin to the list
-            l.add(coins[i])
+            val currentCoinValue = coinCounts.getValue(coins[i])
+            coinCounts[coins[i]] = currentCoinValue + 1
             remainingWeight -= coins[i]
         }
 
         // checking floating point equality, so arbitrarily have an epsilon of 0.00001
         check(remainingWeight < 0.00001) {"Given input weight cannot create a valid solution"}
 
-        return l
+        return coinCounts
     }
 
     /**
