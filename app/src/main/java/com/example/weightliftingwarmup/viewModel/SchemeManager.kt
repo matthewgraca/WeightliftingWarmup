@@ -14,6 +14,8 @@ object SchemeManager {
 
     /**
      * Create a valid scheme based on the user's parameters.
+     * This would be the "entrance" to the code at large; so input validation
+     * should be done here/ensured are valid before being passed here.
      */
     fun createScheme(
         startWeight: Double,
@@ -22,11 +24,17 @@ object SchemeManager {
         setting: Setting,
         sys: WeightSystem
     ){
-        // assumes inputs are valid
         when(setting){
             Setting.GREEDY -> {
-                scheme.workingWeights = createGreedyWeightScheme(startWeight, endWeight, numSets)
-                scheme.plateScheme = createGreedyPlateScheme(scheme.workingWeights, sys)
+                scheme.workingWeights = createGreedyWeightScheme(
+                    startWeight, 
+                    endWeight, 
+                    numSets
+                )
+                scheme.plateScheme = createGreedyPlateScheme(
+                    scheme.workingWeights, 
+                    sys
+                )
             }
             Setting.LAZY -> TODO()
         }
@@ -36,35 +44,40 @@ object SchemeManager {
      * Greedy weight scheme creation section
      */
 
+    /**
+     * Uses the given start and end weight with the number of sets to
+     * generate a weight scheme. This scheme is linear.
+     */
     fun createGreedyWeightScheme(
         startWeight: Double,
         endWeight: Double,
         numSets: Int
-    ): MutableList<Double>{
-        // assumes input from addScheme() is valid
+    ): List<Double>{
         val weightIncrement: Double = (endWeight - startWeight) / (numSets - 1)
-        val exactScheme = mutableListOf<Double>(startWeight)
-        for (i in 1..numSets-1){
-            exactScheme.add(exactScheme[i-1] + weightIncrement)
-        }
-        return exactScheme
+        return List(numSets) { startWeight + weightIncrement * it }
     }
 
+    /**
+     * Uses the given list of weights to create a corresponding 
+     * plate scheme map using the greedy method. 
+     * 
+     * Note that we're calculating plates for each side, not weight as a whole.
+     */
     fun createGreedyPlateScheme(
         weights: List<Double>,
         sys: WeightSystem
     ): List<Map<Double, Int>>{
-        val plateScheme: MutableList<MutableMap<Double, Int>> = mutableListOf()
-        weights.forEach{
-            plateScheme.add(
-                greedyCoinChange((it - weights[0]) / 2, sys)
-            )
-        }
-        return plateScheme
+        return weights.map{ greedyCoinChange((it - weights.first()) / 2, sys) }
     }
 
-    // assumes a solution exists
-    fun greedyCoinChange(weight: Double, sys: WeightSystem): MutableMap<Double, Int>{
+    /**
+     * Greedy solution to the coin change problem. Assumes it is given 
+     * a total with a valid solution.
+     */
+    fun greedyCoinChange(
+        weight: Double, 
+        sys: WeightSystem
+    ): MutableMap<Double, Int>{
         val coins = when(sys){
             WeightSystem.POUNDS -> Pounds().lbs
             WeightSystem.KILOS -> Kilos().kgs
@@ -86,7 +99,9 @@ object SchemeManager {
         }
 
         // checking floating point equality, so arbitrarily have an epsilon of 0.00001
-        check(remainingWeight < 0.00001) {"Given input weight cannot create a valid solution"}
+        check(remainingWeight < 0.00001) {
+          "Given input weight cannot create a valid solution"
+        }
 
         return coinCounts
     }
@@ -108,22 +123,16 @@ object SchemeManager {
         numSets: Int,
         setting: Setting,
         sys: WeightSystem
-    ): Boolean{
-        if (!validateStartWeight(startWeight)) return false
+    ): String{
+        if (startWeight < 0) 
+            return "Start weight must be non-negative"
 
-        if (!validateEndWeight(startWeight, endWeight)) return false
+        if (endWeight < startWeight) 
+            return "Start weight must be larger than end weight" 
 
-        if (!validateNumSets(numSets)) return false
+        if (numSets <= 0)
+            return "Number of sets must be positive"
 
-        return true
+        return "" 
     }
-
-    // condition: must be a non-negative number
-    fun validateStartWeight(startWeight: Double) = startWeight >= 0
-
-    // condition: ending weight >= starting weight
-    fun validateEndWeight(startWeight: Double, endWeight: Double) = endWeight >= startWeight
-
-    // condition: more than 0 sets
-    fun validateNumSets(numSets: Int) = numSets > 0
 }
