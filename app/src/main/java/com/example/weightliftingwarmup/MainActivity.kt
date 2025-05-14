@@ -33,6 +33,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.weightliftingwarmup.ui.theme.WeightliftingWarmupTheme
+import com.example.weightliftingwarmup.viewModel.SchemeManager
+import com.example.weightliftingwarmup.model.*
+import androidx.compose.foundation.lazy.items
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -138,21 +142,24 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
             }
         }
 
+        // TODO -- remove hardcoded scheme.
+        SchemeManager.createScheme(45.0, 205.0, 5, Setting.GREEDY, WeightSystem.POUNDS)
+        val columnItems = SchemeManager.getWeightScheme().zip(SchemeManager.getPlateScheme())
         LazyColumn {
             // Add 5 items
-            items(5) { index ->
+            items(items=columnItems) { (weight, plate) ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ){
                     // Add a single item
                     Text(
-                        text = "First item",
+                        text = "$weight",
                         modifier = Modifier
                         .weight(1f)
                         .padding(4.dp)
                     )
                     Text(
-                        text = "Second item",
+                        text = "${plate.filter{ (k, v) -> v != 0 }}",
                         modifier = Modifier
                             .weight(1f)
                             .padding(4.dp)
