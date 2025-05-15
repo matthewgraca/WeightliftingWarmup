@@ -5,8 +5,8 @@ import com.example.weightliftingwarmup.model.*
 object SchemeManager {
     private val scheme = Scheme()
 
-    fun getWeightScheme(): List<Double> = scheme.workingWeights.toList()
-    fun getPlateScheme(): List<Map<Double, Int>> = scheme.plateScheme.toList()
+    fun getWeightScheme(): List<Double> = scheme.workingWeights
+    fun getPlateScheme(): List<Map<Double, Int>> = scheme.plateScheme
 
     /**
      * Create a valid scheme based on the user's parameters.
@@ -86,14 +86,17 @@ object SchemeManager {
         val coinCount = coins.associateWith{ 0 }.toMutableMap()
 
         var remainingTotal = weight
-        var maxLoop = 10000
+        val maxIterations = 10000
+        var i = 0
         check(weight % coins.first() == 0.0) {
             "No solution can be generated for $remainingTotal, " +
             "from the coins: $coins."
         }
-        // checking floating point equality, so arbitrarily have an epsilon of 0.00001
+        // checking fp equality, so arbitrarily have an epsilon of 0.00001
         while (remainingTotal > 0.00001){
-            val largestFitCoin: Double = coins.findLast{ it <= remainingTotal } ?: -1.0
+            val largestFitCoin: Double = coins.findLast{ 
+                it <= remainingTotal 
+            } ?: -1.0
             check(largestFitCoin != -1.0) {
                 "A solution should be possible, but was not found."
             }
@@ -101,9 +104,10 @@ object SchemeManager {
             coinCount[largestFitCoin] = coinCount.getValue(largestFitCoin) + 1
             remainingTotal -= largestFitCoin 
 
-            maxLoop -= 1
-            check(maxLoop > 0) { 
-                "Coin change loop exceeded 10000 iterations. " + 
+            i += 1
+            check(i != maxIterations) { 
+                "A solution should be possible, but was not found within " +
+                "$maxIterations iterations. " + 
                 "Remaining total: $remainingTotal, coins: $coins."
             }
         }
@@ -118,10 +122,10 @@ object SchemeManager {
     fun createLazyPlateScheme(): Nothing = TODO()
 
     /**
-     * Input validation section
+     * Input validation section. The idea here is that if there is no error, 
+     * an empty string will be returned; otherwise, the first error to hit
+     * has its message returned.
      */
-    // TODO: If the inputs are invalid, what should we do? Throw errors? Return defaults?
-    // maybe under user input, it would notify the error; e.g. end weight must be larger than start weight
     fun validateInputs(
         startWeight: Double?,
         endWeight: Double?,
@@ -129,16 +133,33 @@ object SchemeManager {
         setting: Setting,
         sys: WeightSystem
     ): String{
-        if (startWeight == null || startWeight < 0) 
+        if (startWeight == null || startWeight < 0.0) 
             return "Start weight must be non-negative"
 
         if (endWeight == null || endWeight < startWeight) 
-            return "Start weight must be larger than end weight" 
+            return "End weight cannot be less than start weight" 
 
         if (numSets == null || numSets <= 0)
             return "Number of sets must be positive"
+        
+        return validateSolvability(
+            startWeight, endWeight, numSets, setting, sys
+        )
+    }
 
-        val weightsAvailable = when(sys){
+    /**
+     * Checks if the given inputs can generate a solution. Expects that 
+     * startWeight, endWeight, and numSets are valid.
+     */
+    fun validateSolvability(
+        startWeight: Double,
+        endWeight: Double,
+        numSets: Int,
+        setting: Setting,
+        sys: WeightSystem
+    ): String{
+        // weight should be divisible by the smallest unit to have a solution
+        val weightsAvailable = when (sys){
             WeightSystem.POUNDS -> Pounds().lbs
             WeightSystem.KILOS -> Kilos().kgs
         }
@@ -146,8 +167,18 @@ object SchemeManager {
             "The weights available is expected to be sorted: $weightsAvailable."
         }
         if ((endWeight - startWeight) / 2 % weightsAvailable.first() != 0.0)
-            return "A solution is not possible with the weights available."
+            return "A solution is not possible with the weights available"
 
-        return "" 
+        // sometimes the number of sets divides the weight too precisely
+        val increment = (endWeight - startWeight) / 2 / (numSets - 1)
+        val validIncrement = when (setting){
+            Setting.GREEDY -> increment % weightsAvailable.first() == 0.0
+            Setting.LAZY -> true 
+        }
+        if (!validIncrement){
+            return "A solution is not possible with the number of sets given"
+        }
+
+        return ""
     }
 }
