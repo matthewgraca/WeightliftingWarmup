@@ -36,6 +36,7 @@ import com.example.weightliftingwarmup.ui.theme.WeightliftingWarmupTheme
 import com.example.weightliftingwarmup.viewModel.SchemeManager
 import com.example.weightliftingwarmup.model.*
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.text.style.TextAlign
 
 
 class MainActivity : ComponentActivity() {
@@ -58,43 +59,30 @@ class MainActivity : ComponentActivity() {
 // TODO compartmentalize these components into functions
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
-    var checked by remember { mutableStateOf(true) }
+    var startNum by remember { mutableStateOf("") }
+    var endNum by remember { mutableStateOf("") }
+    var setNum by remember { mutableStateOf("") }
+    val radioOptionsSetting = listOf("Greedy", "Lazy")
+    val (selectedOptionSetting, onOptionSelectedSetting) = remember {
+        mutableStateOf(radioOptionsSetting[0])
+    }
+    val radioOptionsSystem = listOf("Pounds", "Kilograms")
+    val (selectedOptionSystem, onOptionSelectedSystem) = remember {
+        mutableStateOf(radioOptionsSystem[0])
+    }
+
 
     Column{
-        Switch(
-            checked = checked,
-            onCheckedChange = {
-                checked = it
-            },
-            thumbContent = if (checked) {
-                {
-                    Text(
-                        text = "lbs",
-                        modifier = modifier
-                    )
-                }
-            } else {
-                {
-                    Text(
-                        text = "kgs",
-                        modifier = modifier
-                    )
-                }
-            }
-        )
         Row(
             verticalAlignment = Alignment.CenterVertically
         ){
-            var startNum by remember { mutableStateOf("") }
-            var endNum by remember { mutableStateOf("") }
-
             TextField(
                 value = startNum,
                 onValueChange = { startNum = it },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number
                 ),
-                label = { Text("Start Weight") },
+                label = { Text("Start") },
                 modifier = Modifier
                     .weight(1f)
                     .padding(4.dp)
@@ -106,67 +94,154 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number
                 ),
-                label = { Text("End Weight") },
+                label = { Text("End") },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp)
+            )
+
+            TextField(
+                value = setNum,
+                onValueChange = { setNum = it },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number
+                ),
+                label = { Text("Sets") },
                 modifier = Modifier
                     .weight(1f)
                     .padding(4.dp)
             )
         }
 
-        val radioOptions = listOf("Greedy", "Lazy")
-        val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
         Column(modifier.selectableGroup()) {
-            radioOptions.forEach { text ->
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(36.dp)
-                        .selectable(
-                            selected = (text == selectedOption),
-                            onClick = { onOptionSelected(text) },
-                            role = Role.RadioButton
-                        )
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+            var text = radioOptionsSetting[0]
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .height(36.dp)
+                    .selectable(
+                        selected = (text == selectedOptionSetting),
+                        onClick = { onOptionSelectedSetting(text) },
+                        role = Role.RadioButton
+                    )
+                    .padding(horizontal = 0.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = "\uD83D\uDCC8 System",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .padding(start = 16.dp)
+                        .weight(1f)
+                )
+                radioOptionsSetting.forEach { text ->
                     RadioButton(
-                        selected = (text == selectedOption),
+                        selected = (text == selectedOptionSetting),
                         onClick = null // null recommended for accessibility with screen readers
                     )
                     Text(
                         text = text,
                         style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(start = 16.dp)
+                        modifier = Modifier
+                            .padding(start = 8.dp, end = 8.dp)
+                            .weight(1f)
+                    )
+                }
+            }
+            text = radioOptionsSystem[0]
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .height(36.dp)
+                    .selectable(
+                        selected = (text == selectedOptionSystem),
+                        onClick = { onOptionSelectedSystem(text) },
+                        role = Role.RadioButton
+                    )
+                    .padding(horizontal = 0.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = "\uD83D\uDCCF Units",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .padding(start = 16.dp)
+                        .weight(1f)
+                )
+                radioOptionsSystem.forEach{ text ->
+                    RadioButton(
+                        selected = (text == selectedOptionSystem),
+                        onClick = null // null recommended for accessibility with screen readers
+                    )
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier
+                            .padding(start = 8.dp, end = 8.dp)
+                            .weight(1f)
                     )
                 }
             }
         }
 
         // TODO -- remove hardcoded scheme.
-        SchemeManager.createScheme(45.0, 205.0, 5, Setting.GREEDY, WeightSystem.POUNDS)
-        val columnItems = SchemeManager.getWeightScheme().zip(SchemeManager.getPlateScheme())
-        LazyColumn {
-            // Add 5 items
-            items(items=columnItems) { (weight, plate) ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ){
-                    // Add a single item
-                    Text(
-                        text = "$weight",
-                        modifier = Modifier
-                        .weight(1f)
-                        .padding(4.dp)
-                    )
-                    Text(
-                        text = "${plate.filter{ (k, v) -> v != 0 }}",
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp)
-                    )
+        // TODO get value of radio button
+        val errorMsg = SchemeManager.validateInputs(
+            startNum.toDoubleOrNull(),
+            endNum.toDoubleOrNull(),
+            setNum.toIntOrNull(),
+            Setting.GREEDY,
+            WeightSystem.POUNDS
+        )
+        if (errorMsg.isEmpty()){
+            SchemeManager.createScheme(
+                startNum.toDouble(),
+                endNum.toDouble(),
+                setNum.toInt(),
+                Setting.GREEDY,
+                WeightSystem.POUNDS
+            )
+            val columnItems = SchemeManager.getWeightScheme().zip(SchemeManager.getPlateScheme())
+
+            LazyColumn {
+                // Add 5 items
+                items(items=columnItems) { (weight, plate) ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        // Add a single item
+                        Text(
+                            text = "$weight",
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
+                        )
+                        Text(
+                            text = "${plate.filter{ (_, v) -> v != 0 }}",
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
+                        )
+                    }
                 }
             }
         }
+        else{
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Text(
+                    text = "‼\uFE0F $errorMsg ‼\uFE0F",
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
     }
 }
 
