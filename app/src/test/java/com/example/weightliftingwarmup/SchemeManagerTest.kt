@@ -137,4 +137,159 @@ class SchemeManagerTest {
 
         assertTrue("Expected: $expected, Actual: $real", real == expected)
     }
+
+    /** validate input tests **/
+    @Test
+    fun validateInputs_validInputisValid(){
+        val real = SchemeManager.validateInputs(
+            45.0,
+            205.0,
+            5,
+            Setting.GREEDY,
+            WeightSystem.POUNDS
+        )
+        val expected = "" 
+
+        assertTrue("Expected: $expected, Actual: $real", real == expected)
+    }
+
+    @Test
+    fun validateInputs_negativeStartWeight(){
+        val real = SchemeManager.validateInputs(
+            -1.0,
+            205.0,
+            5,
+            Setting.GREEDY,
+            WeightSystem.POUNDS
+        )
+        val expected = "Start weight must be non-negative" 
+
+        assertTrue("Expected: $expected, Actual: $real", real == expected)
+    }
+
+    @Test
+    fun validateInputs_nullStartWeight(){
+        val real = SchemeManager.validateInputs(
+            null,
+            205.0,
+            5,
+            Setting.GREEDY,
+            WeightSystem.POUNDS
+        )
+        val expected = "Start weight must be non-negative" 
+
+        assertTrue("Expected: $expected, Actual: $real", real == expected)
+    }
+
+    @Test
+    fun validateInputs_endWeightLessThanStartWeight(){
+        val real = SchemeManager.validateInputs(
+            45.0,
+            44.0,
+            5,
+            Setting.GREEDY,
+            WeightSystem.POUNDS
+        )
+        val expected = "End weight cannot be less than start weight" 
+
+        assertTrue("Expected: $expected, Actual: $real", real == expected)
+    } 
+
+    @Test
+    fun validateInputs_nullEndWeight(){
+        val real = SchemeManager.validateInputs(
+            45.0,
+            null,
+            5,
+            Setting.GREEDY,
+            WeightSystem.POUNDS
+        )
+        val expected = "End weight cannot be less than start weight" 
+
+        assertTrue("Expected: $expected, Actual: $real", real == expected)
+    }
+
+    @Test
+    fun validateInputs_validNumSets(){
+        val real = SchemeManager.validateInputs(
+            45.0,
+            205.0,
+            5,
+            Setting.GREEDY,
+            WeightSystem.POUNDS
+        )
+        val expected = "" 
+
+        assertTrue("Expected: $expected, Actual: $real", real == expected)
+    }
+
+    @Test
+    fun validateInputs_nullNumSets(){
+        val real = SchemeManager.validateInputs(
+            45.0,
+            205.0,
+            null,
+            Setting.GREEDY,
+            WeightSystem.POUNDS
+        )
+        val expected = "Number of sets must be positive" 
+
+        assertTrue("Expected: $expected, Actual: $real", real == expected)
+    }
+
+    @Test
+    fun validateInputs_zeroNumSets(){
+        val real = SchemeManager.validateInputs(
+            45.0,
+            205.0,
+            0,
+            Setting.GREEDY,
+            WeightSystem.POUNDS
+        )
+        val expected = "Number of sets must be positive" 
+
+        assertTrue("Expected: $expected, Actual: $real", real == expected)
+    }
+
+    @Test
+    fun validateSolvability_isSolvable(){
+        val real = SchemeManager.validateInputs(
+            45.0,
+            205.0,
+            5,
+            Setting.GREEDY,
+            WeightSystem.POUNDS
+        )
+        val expected = "" 
+
+        assertTrue("Expected: $expected, Actual: $real", real == expected)
+    }
+
+    @Test
+    fun validateSolvability_weightHasNoSolution(){
+        val real = SchemeManager.validateInputs(
+            45.0,
+            205.234,
+            5,
+            Setting.GREEDY,
+            WeightSystem.POUNDS
+        )
+        val expected = "A solution is not possible with the weights available" 
+
+        assertTrue("Expected: $expected, Actual: $real", real == expected)
+    }
+
+    @Test
+    fun validateSolvability_weightIncrementsHaveNoSolution(){
+        val real = SchemeManager.validateInputs(
+            45.0,
+            205.0,
+            7,
+            Setting.GREEDY,
+            WeightSystem.POUNDS
+        )
+        val expected = "A solution is not possible with the number of sets given" 
+
+        assertTrue("Expected: $expected, Actual: $real", real == expected)
+    }
 }
