@@ -1,10 +1,6 @@
 package com.example.weightliftingwarmup.viewModel
 
-import com.example.weightliftingwarmup.model.Kilos
-import com.example.weightliftingwarmup.model.Pounds
-import com.example.weightliftingwarmup.model.Scheme
-import com.example.weightliftingwarmup.model.Setting
-import com.example.weightliftingwarmup.model.WeightSystem
+import com.example.weightliftingwarmup.model.*
 
 object SchemeManager {
     private val scheme = Scheme()
@@ -82,28 +78,37 @@ object SchemeManager {
             WeightSystem.POUNDS -> Pounds().lbs
             WeightSystem.KILOS -> Kilos().kgs
         }
-        val coinCounts = coins.associateWith{ 0 }.toMutableMap()
+        // expect the coins to be sorted due to findLast{}
+        check(coins.sorted() == coins) { 
+            "Weight system is not sorted, received: $coins" 
+        }
+        
+        val coinCount = coins.associateWith{ 0 }.toMutableMap()
 
-        var remainingWeight = weight
-        while (remainingWeight > 0){
-            // find largest coin that fits the remaining weight
-            var i = coins.size - 1
-            while (coins[i] > remainingWeight){
-                i--
+        var remainingTotal = weight
+        var maxLoop = 10000
+        check(weight % coins.first() == 0.0) {
+            "No solution can be generated for $remainingTotal, " +
+            "from the coins: $coins."
+        }
+        // checking floating point equality, so arbitrarily have an epsilon of 0.00001
+        while (remainingTotal > 0.00001){
+            val largestFitCoin: Double = coins.findLast{ it <= remainingTotal } ?: -1.0
+            check(largestFitCoin != -1.0) {
+                "A solution should be possible, but was not found."
             }
 
-            // add that coin to the list
-            val currentCoinValue = coinCounts.getValue(coins[i])
-            coinCounts[coins[i]] = currentCoinValue + 1
-            remainingWeight -= coins[i]
+            coinCount[largestFitCoin] = coinCount.getValue(largestFitCoin) + 1
+            remainingTotal -= largestFitCoin 
+
+            maxLoop -= 1
+            check(maxLoop > 0) { 
+                "Coin change loop exceeded 10000 iterations. " + 
+                "Remaining total: $remainingTotal, coins: $coins."
+            }
         }
 
-        // checking floating point equality, so arbitrarily have an epsilon of 0.00001
-        check(remainingWeight < 0.00001) {
-          "Given input weight cannot create a valid solution"
-        }
-
-        return coinCounts
+        return coinCount
     }
 
     /**
@@ -118,20 +123,30 @@ object SchemeManager {
     // TODO: If the inputs are invalid, what should we do? Throw errors? Return defaults?
     // maybe under user input, it would notify the error; e.g. end weight must be larger than start weight
     fun validateInputs(
-        startWeight: Double,
-        endWeight: Double,
-        numSets: Int,
+        startWeight: Double?,
+        endWeight: Double?,
+        numSets: Int?,
         setting: Setting,
         sys: WeightSystem
     ): String{
-        if (startWeight < 0) 
+        if (startWeight == null || startWeight < 0) 
             return "Start weight must be non-negative"
 
-        if (endWeight < startWeight) 
+        if (endWeight == null || endWeight < startWeight) 
             return "Start weight must be larger than end weight" 
 
-        if (numSets <= 0)
+        if (numSets == null || numSets <= 0)
             return "Number of sets must be positive"
+
+        val weightsAvailable = when(sys){
+            WeightSystem.POUNDS -> Pounds().lbs
+            WeightSystem.KILOS -> Kilos().kgs
+        }
+        check (weightsAvailable.sorted() == weightsAvailable) {
+            "The weights available is expected to be sorted: $weightsAvailable."
+        }
+        if ((endWeight - startWeight) / 2 % weightsAvailable.first() != 0.0)
+            return "A solution is not possible with the weights available."
 
         return "" 
     }
